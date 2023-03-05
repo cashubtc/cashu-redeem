@@ -14,6 +14,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = /*html*/ `
     <p id="tokenStatus"></p>
     <div id="lightningSection" class="hidden">
       <span id="lnurl" role="textbox" aria-roledescription="input" contenteditable></span>
+      <button id="redeem" class="button-primary">REDEEM</button>
     </div>
     <p>Cashu is a free and open-source Chaumian ecash system built for Bitcoin. Cashu offers near-perfect privacy for users of custodial Bitcoin applications. Nobody needs to knows who you are, how much funds you have, and with whom you transact with.</p>
     <p>Here you can redeem your Cashu ecash token and get paid into your lightning wallet.</p>
@@ -134,7 +135,9 @@ tokenInput!.oninput = async (event) => {
   }
 };
 
-lnurlInput!.oninput = async (event) => {
+document.querySelector<HTMLButtonElement>('#redeem')!.onclick = async (
+  event
+) => {
   event.preventDefault();
   setTokenStatus('Attempting payment...');
   try {
