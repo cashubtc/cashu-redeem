@@ -10,10 +10,10 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = /*html*/ `
   <div>
     <img src="https://cashu.space/img/rounded_192x192.png" class="logo" alt="Cashu logo" />
     <h1>Cashu Redeem</h1>
-    <span id="token" role="textbox" contenteditable></span>
-    <h4 id="tokenStatus"></h4>
+    <span id="token" role="textbox" aria-roledescription="input" contenteditable></span>
+    <p id="tokenStatus"></p>
     <div id="lightningSection" class="hidden">
-      <span id="lnurl" role="textbox" contenteditable></span>
+      <span id="lnurl" role="textbox" aria-roledescription="input" contenteditable></span>
     </div>
     <p>Cashu is a free and open-source Chaumian ecash system built for Bitcoin. Cashu offers near-perfect privacy for users of custodial Bitcoin applications. Nobody needs to knows who you are, how much funds you have, and with whom you transact with.</p>
     <p>Here you can redeem your Cashu ecash token and get paid into your lightning wallet.</p>
