@@ -1,7 +1,30 @@
 {
   "name": "cashu-redeem",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
+  "author": "SuperPhatArrow",
+  "contributors": [],
+  "license": "GPLv3",
+  "engines": {
+    "npm": ">=8.0.0 <9.0.0",
+    "node": ">=16.0.0 <17.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SuperPhatArrow/cashu-redeem"
+  },
+  "bugs": {
+    "url": "https://github.com/SuperPhatArrow/cashu-redeem/issues"
+  },
+  "keywords": [
+    "Bitcoin",
+    "Lightning",
+    "Cashu",
+    "Fedimint",
+    "Chaum",
+    "ECash",
+    "LNURL"
+  ],
   "type": "module",
   "scripts": {
     "dev": "vite",
