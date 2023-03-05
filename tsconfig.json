@@ -15,5 +15,5 @@
     "noImplicitReturns": true,
     "skipLibCheck": true
   },
-  "include": ["src"]
+  "include": ["src", "lib/bolt11/bolt11.ts", "lib/bech32/bech32.ts"]
 }

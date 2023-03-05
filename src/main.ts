@@ -1,23 +1,161 @@
-import './style.css'
-import typescriptLogo from './typescript.svg'
-import { setupCounter } from './counter'
+import './style.css';
+import { CashuMint, CashuWallet } from '@gandlaf21/cashu-ts';
+import { bech32 } from '../lib/bech32/bech32';
+import { decode } from '../lib/bolt11/bolt11';
+// import bolt11 from 'bolt11';
+import type { Proof } from '@gandlaf21/cashu-ts';
+// https://8333.space:3338/check
 
-document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
+document.querySelector<HTMLDivElement>('#app')!.innerHTML = /*html*/ `
   <div>
-    <a href="https://vitejs.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://www.typescriptlang.org/" target="_blank">
-      <img src="${typescriptLogo}" class="logo vanilla" alt="TypeScript logo" />
-    </a>
-    <h1>Vite + TypeScript</h1>
-    <div class="card">
-      <button id="counter" type="button"></button>
+    <img src="https://cashu.space/img/rounded_192x192.png" class="logo" alt="Cashu logo" />
+    <h1>Cashu Redeem</h1>
+    <span id="token" role="textbox" contenteditable></span>
+    <h4 id="tokenStatus"></h4>
+    <div id="lightningSection" class="hidden">
+      <span id="lnurl" role="textbox" contenteditable></span>
     </div>
-    <p class="read-the-docs">
-      Click on the Vite and TypeScript logos to learn more
-    </p>
+    <p>Cashu is a free and open-source Chaumian ecash system built for Bitcoin. Cashu offers near-perfect privacy for users of custodial Bitcoin applications. Nobody needs to knows who you are, how much funds you have, and with whom you transact with.</p>
+    <p>Here you can redeem your Cashu ecash token and get paid into your lightning wallet.</p>
   </div>
-`
+`;
 
-setupCounter(document.querySelector<HTMLButtonElement>('#counter')!)
+let wallet: CashuWallet;
+let mintUrl: string;
+let proofs: Proof[];
+let payAmount = 0;
+let tokenAmount = 0;
+
+const tokenInput = document.querySelector<HTMLSpanElement>('#token');
+const tokenStatus = document.querySelector<HTMLHeadingElement>('#tokenStatus');
+const lightningSection =
+  document.querySelector<HTMLDivElement>('#lightningSection');
+const lnurlInput = document.querySelector<HTMLSpanElement>('#lnurl');
+
+const setTokenStatus = (msg = '') => {
+  tokenStatus!.innerText = msg;
+};
+
+const getInvoiceFromLnurl = async (
+  address = '',
+  amount = 0
+): Promise<string> => {
+  try {
+    if (!address) throw `Error: address is required!`;
+    if (!amount) throw `Error: amount is required!`;
+    if (!isLnurl(address)) throw 'Error: invalid address';
+    let data: {
+      tag: string;
+      minSendable: number;
+      maxSendable: number;
+      callback: string;
+      pr: string;
+    };
+    if (address.split('@').length === 2) {
+      const [user, host] = address.split('@');
+      const response = await fetch(
+        `https://${host}/.well-known/lnurlp/${user}`
+      );
+      if (!response.ok) throw 'Unable to reach host';
+      const json = await response.json();
+      data = json;
+    } else {
+      const dataPart = bech32.decode(address, 20000).words;
+      const requestByteArray = bech32.fromWords(dataPart);
+      const host = new TextDecoder().decode(new Uint8Array(requestByteArray));
+      const response = await fetch(host);
+      if (!response.ok) throw 'Unable to reach host';
+      const json = await response.json();
+      data = json;
+    }
+    if (
+      data.tag == 'payRequest' &&
+      data.minSendable <= amount * 1000 &&
+      amount * 1000 <= data.maxSendable
+    ) {
+      const response = await fetch(`${data.callback}?amount=${amount * 1000}`);
+      if (!response.ok) throw 'Unable to reach host';
+      const json = await response.json();
+      return json.pr ?? new Error('Unable to get invoice');
+    } else throw 'Host unable to make a lightning invoice for this amount.';
+  } catch (err) {
+    console.error(err);
+    return '';
+  }
+};
+
+const isLnurl = (address: string) =>
+  address.split('@').length === 2 || address.toLowerCase().startsWith('lnurl1');
+
+tokenInput!.oninput = async (event) => {
+  event.preventDefault();
+  lightningSection?.classList.add('hidden');
+  setTokenStatus('Checking token, one moment please...');
+  try {
+    const tokenBase64 = tokenInput!.innerText;
+    if (!tokenBase64) {
+      setTokenStatus();
+      return;
+    }
+    const token = JSON.parse(atob(tokenBase64));
+    console.log('token :>> ', token);
+    mintUrl = token.mints[0].url;
+    const mint = new CashuMint(mintUrl);
+    const keys = await mint.getKeys();
+    wallet = new CashuWallet(keys, mint);
+    proofs = token.proofs ?? [];
+    const spentProofs = await wallet.checkProofsSpent(proofs);
+    if (spentProofs.length && spentProofs.length === proofs.length) {
+      throw 'Token already spent';
+    }
+    if (spentProofs.length) {
+      throw spentProofs.join(', ');
+    }
+    tokenAmount = proofs.reduce(
+      (accumulator: number, currentValue: Proof) =>
+        accumulator + currentValue.amount,
+      0
+    );
+    lightningSection?.classList.remove('hidden');
+    const feeAmount = Math.ceil(Math.max(2, tokenAmount * 0.02));
+    payAmount = tokenAmount - feeAmount;
+    setTokenStatus(
+      `Receive ${payAmount} sats (incl. ${feeAmount} sats network fees) via Lightning.`
+    );
+  } catch (err) {
+    console.error(err);
+    let errMsg = `${err}`;
+    if (
+      errMsg.startsWith('InvalidCharacterError') ||
+      errMsg.startsWith('SyntaxError:')
+    )
+      errMsg = 'Invalid Token!';
+    setTokenStatus(errMsg);
+  }
+};
+
+lnurlInput!.oninput = async (event) => {
+  event.preventDefault();
+  setTokenStatus('Attempting payment...');
+  try {
+    let invoice = '';
+    let address = lnurlInput?.innerText ?? '';
+    if (isLnurl(address)) {
+      invoice = await getInvoiceFromLnurl(address, payAmount);
+    } else invoice = address;
+    if (!wallet || !invoice || !payAmount) throw 'OOPS!';
+    const decodedInvoice = await decode(invoice);
+    const fee = await wallet.getFee(invoice);
+    const requestedSats = decodedInvoice.satoshis || 0;
+    if (requestedSats + fee > tokenAmount)
+      throw 'Not enough to pay the invoice.';
+    const { isPaid } = await wallet.payLnInvoice(invoice, proofs);
+    if (isPaid) {
+      setTokenStatus('Payment successful!');
+    } else {
+      setTokenStatus('Payment failed');
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
