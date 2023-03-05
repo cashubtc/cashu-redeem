@@ -8,7 +8,7 @@ import type { Proof } from '@gandlaf21/cashu-ts';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = /*html*/ `
   <div>
-    <img src="https://cashu.space/img/rounded_192x192.png" class="logo" alt="Cashu logo" style="width:192px;height192px;"/>
+    <img src="/rounded_192x192.png" class="logo" alt="Cashu logo" width="192" height="192" />
     <h1>Cashu Redeem</h1>
     <span id="token" role="textbox" aria-roledescription="input" contenteditable></span>
     <p id="tokenStatus"></p>
