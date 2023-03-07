@@ -148,7 +148,6 @@ form {
 #token,
 #lnurl {
   display: block;
-  width: 100%;
   max-width: 80vw;
   overflow: hidden;
   resize: none;
