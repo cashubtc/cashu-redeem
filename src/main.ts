@@ -10,10 +10,16 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = /*html*/ `
   <div>
     <img src="/rounded_192x192.png" class="logo" alt="Cashu logo" width="192" height="192" />
     <h1>Cashu Redeem</h1>
-    <span id="token" role="textbox" aria-roledescription="input" contenteditable></span>
+    <div id="tokenWrapper" class="text-wrapper">
+      <span id="token" role="textbox" aria-roledescription="input" contenteditable></span>
+      <button id="tokenRemover" class="text-remover hidden">&times;</button>
+    </div>
     <p id="tokenStatus"></p>
     <div id="lightningSection" class="hidden">
-      <span id="lnurl" role="textbox" aria-roledescription="input" contenteditable></span>
+      <div id="lnurlWrapper" class="text-wrapper">
+        <span id="lnurl" role="textbox" aria-roledescription="input" contenteditable></span>
+        <button id="lnurlRemover" class="text-remover hidden">&times;</button>
+      </div>
       <button id="redeem" class="button-primary">REDEEM</button>
     </div>
     <p>Cashu is a free and open-source Chaumian ecash system built for Bitcoin. Cashu offers near-perfect privacy for users of custodial Bitcoin applications. Nobody needs to knows who you are, how much funds you have, and with whom you transact with.</p>
@@ -85,12 +91,26 @@ const getInvoiceFromLnurl = async (
   }
 };
 
+document.querySelectorAll('button.text-remover').forEach((btn) =>
+  btn.addEventListener('click', (ev) => {
+    ev.preventDefault();
+    if (ev === null) return;
+    const btn: HTMLButtonElement = ev.target as HTMLButtonElement;
+    const textContainer: HTMLSpanElement =
+      btn.previousElementSibling as HTMLSpanElement;
+    textContainer.innerText = '';
+  })
+);
+
 const isLnurl = (address: string) =>
   address.split('@').length === 2 || address.toLowerCase().startsWith('lnurl1');
 
 tokenInput!.oninput = async (event) => {
   event.preventDefault();
   lightningSection?.classList.add('hidden');
+  document
+    .querySelector<HTMLButtonElement>('#tokenRemover')!
+    .classList.add('hidden');
   setTokenStatus('Checking token, one moment please...');
   try {
     const tokenBase64 = tokenInput!.innerText;
@@ -98,6 +118,9 @@ tokenInput!.oninput = async (event) => {
       setTokenStatus();
       return;
     }
+    document
+      .querySelector<HTMLButtonElement>('#tokenRemover')!
+      .classList.remove('hidden');
     const token = JSON.parse(atob(tokenBase64));
     console.log('token :>> ', token);
     mintUrl = token.mints[0].url;
@@ -133,6 +156,17 @@ tokenInput!.oninput = async (event) => {
       errMsg = 'Invalid Token!';
     setTokenStatus(errMsg);
   }
+};
+
+lnurlInput!.oninput = () => {
+  if (lnurlInput)
+    document
+      .querySelector<HTMLButtonElement>('#lnurlRemover')!
+      .classList.remove('hidden');
+  else
+    document
+      .querySelector<HTMLButtonElement>('#lnurlRemover')!
+      .classList.add('hidden');
 };
 
 document.querySelector<HTMLButtonElement>('#redeem')!.onclick = async (

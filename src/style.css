@@ -5,9 +5,7 @@
   font-weight: 400;
   --color-bg: #242424;
   --color-fg: #f9f9f9;
-  --color-a: #646cff;
-  --color-b: #747bff;
-  --color-c: #535bf2;
+  --color-a: #7f38ca;
   color-scheme: light dark;
   color: var(--color-fg);
   background-color: var(--color-bg);
@@ -53,11 +51,11 @@ p {
 }
 a {
   font-weight: 500;
-  color: #646cff;
+  color: var(--color-a);
   text-decoration: inherit;
 }
 a:hover {
-  color: #535bf2;
+  color: var(--color-a);
 }
 .button,
 button,
@@ -78,7 +76,7 @@ input[type='button'] {
   white-space: nowrap;
   background-color: transparent;
   border-radius: 4px;
-  border: 1px solid var(--color-c);
+  border: 1px solid var(--color-a);
   cursor: pointer;
   box-sizing: border-box;
 }
@@ -92,7 +90,7 @@ button:focus,
 input[type='submit']:focus,
 input[type='reset']:focus,
 input[type='button']:focus {
-  color: var(--color-c);
+  color: var(--color-a);
   border-color: var(--color-a);
   outline: 0;
 }
@@ -102,7 +100,7 @@ input[type='submit'].button-primary,
 input[type='reset'].button-primary,
 input[type='button'].button-primary {
   color: var(--color-fg);
-  background-color: var(--color-c);
+  background-color: var(--color-a);
   border-color: var(--color-fg);
 }
 .button.button-primary:hover,
@@ -115,9 +113,9 @@ button.button-primary:focus,
 input[type='submit'].button-primary:focus,
 input[type='reset'].button-primary:focus,
 input[type='button'].button-primary:focus {
-  color: var(--color-fg);
+  color: var(--color-bg);
   background-color: var(--color-a);
-  border-color: var(--color-fg);
+  border-color: var(--color-bg);
 }
 button,
 .button {
@@ -158,7 +156,7 @@ form {
   line-height: 20px;
   margin: 0 auto;
   font-family: monospace;
-  border: 1px solid var(--color-c);
+  border: 1px solid var(--color-a);
   padding: 1.5em;
   border-radius: 1em;
 }
@@ -170,12 +168,31 @@ form {
   content: 'Paste Lightning invoice or LNURL or Lightning address';
   color: gray;
 }
+.text-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 80vw;
+  margin: 0 auto;
+}
+.text-remover {
+  position: absolute;
+  top: 0;
+  right: 0;
+  border: none;
+  font-weight: 900;
+  font-size: 20px;
+  color: var(--color-a);
+}
+.text-remover:hover {
+  color: var(--color-bg);
+  background-color: var(--color-fg);
+}
 #tokenStatus {
   font-size: 2.4rem;
   line-height: 1.35;
   letter-spacing: -0.08rem;
   font-weight: 700;
-  color: var(--color-c);
+  color: var(--color-a);
 }
 @media (prefers-color-scheme: light) {
   :root {
