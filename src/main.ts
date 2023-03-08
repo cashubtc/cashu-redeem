@@ -105,8 +105,8 @@ document.querySelectorAll('button.text-remover').forEach((btn) =>
 const isLnurl = (address: string) =>
   address.split('@').length === 2 || address.toLowerCase().startsWith('lnurl1');
 
-tokenInput!.oninput = async (event) => {
-  event.preventDefault();
+const processToken = async (event?: Event) => {
+  if (event) event.preventDefault();
   lightningSection?.classList.add('hidden');
   document
     .querySelector<HTMLButtonElement>('#tokenRemover')!
@@ -158,6 +158,8 @@ tokenInput!.oninput = async (event) => {
   }
 };
 
+tokenInput!.oninput = processToken;
+
 lnurlInput!.oninput = () => {
   if (lnurlInput)
     document
@@ -196,3 +198,12 @@ document.querySelector<HTMLButtonElement>('#redeem')!.onclick = async (
     console.error(err);
   }
 };
+
+{
+  let params = new URL(document.location.href).searchParams;
+  const token = params.get('token') ?? '';
+  if (token) {
+    tokenInput!.innerText = token;
+    processToken();
+  }
+}
