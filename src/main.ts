@@ -161,7 +161,7 @@ const processToken = async (event?: Event) => {
 tokenInput!.oninput = processToken;
 
 lnurlInput!.oninput = () => {
-  if (lnurlInput)
+  if (lnurlInput?.innerText)
     document
       .querySelector<HTMLButtonElement>('#lnurlRemover')!
       .classList.remove('hidden');
@@ -201,9 +201,13 @@ document.querySelector<HTMLButtonElement>('#redeem')!.onclick = async (
 
 {
   let params = new URL(document.location.href).searchParams;
-  const token = params.get('token') ?? '';
+  const token = decodeURIComponent(params.get('token') ?? '');
+  const to = decodeURIComponent(params.get('to') ?? '');
   if (token) {
     tokenInput!.innerText = token;
     processToken();
+  }
+  if (to) {
+    lnurlInput!.innerText = to;
   }
 }
