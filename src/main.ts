@@ -202,7 +202,7 @@ document.querySelector<HTMLButtonElement>('#redeem')!.onclick = async (
 {
   let params = new URL(document.location.href).searchParams;
   const token = decodeURIComponent(params.get('token') ?? '');
-  const to = decodeURIComponent(params.get('to') ?? '');
+  const to = decodeURIComponent(params.get('ln') || params.get('to') || '');
   if (token) {
     tokenInput!.innerText = token;
     processToken();
