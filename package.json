@@ -1,20 +1,20 @@
 {
   "name": "cashu-redeem",
-  "private": true,
+  "private": false,
   "version": "0.0.1",
   "author": "SuperPhatArrow",
   "contributors": [],
-  "license": "GPLv3",
+  "license": "GPL-3.0-or-later",
   "engines": {
     "npm": ">=8.0.0 <9.0.0",
     "node": ">=16.0.0 <17.0.0"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/SuperPhatArrow/cashu-redeem"
+    "url": "https://github.com/cashubtc/cashu-redeem"
   },
   "bugs": {
-    "url": "https://github.com/SuperPhatArrow/cashu-redeem/issues"
+    "url": "https://github.com/cashubtc/cashu-redeem/issues"
   },
   "keywords": [
     "Bitcoin",
@@ -37,9 +37,6 @@
   },
   "dependencies": {
     "@gandlaf21/cashu-ts": "^0.6.0",
-    "@noble/secp256k1": "^1.7.1",
-    "@vercel/edge": "^0.3.1",
-    "bech32": "^2.0.0",
-    "bolt11": "^1.4.0"
+    "@noble/secp256k1": "^1.7.1"
   }
 }
