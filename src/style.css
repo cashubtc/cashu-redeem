@@ -160,7 +160,7 @@ form {
   border-radius: 1em;
 }
 #token[contenteditable]:empty::before {
-  content: 'Paste in your Cashu ECash token...';
+  content: 'Paste in your Cashu ecash token...';
   color: gray;
 }
 #lnurl[contenteditable]:empty::before {

@@ -1,6 +1,6 @@
 # cashu-redeem
 
-Simple web app for redeeming Cashu ECash tokens to your lightning wallet. Written in Typescript using Vite.
+Simple web app for redeeming Cashu ecash tokens to your lightning wallet. Written in Typescript using Vite.
 Use LTS node version
 
 ## Install
