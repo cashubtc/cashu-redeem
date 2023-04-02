@@ -1,9 +1,9 @@
 import './style.css';
-import { CashuMint, CashuWallet } from '@gandlaf21/cashu-ts';
+import { CashuMint, CashuWallet, getDecodedToken } from '@cashu/cashu-ts';
 import { bech32 } from '../lib/bech32/bech32';
 import { decode } from '../lib/bolt11/bolt11';
 // import bolt11 from 'bolt11';
-import type { Proof } from '@gandlaf21/cashu-ts';
+import type { Proof } from '@cashu/cashu-ts';
 // https://8333.space:3338/check
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = /*html*/ `
@@ -22,8 +22,9 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = /*html*/ `
       </div>
       <button id="redeem" class="button-primary">REDEEM</button>
     </div>
-    <p>Cashu is a free and open-source Chaumian ecash system built for Bitcoin. Cashu offers near-perfect privacy for users of custodial Bitcoin applications. Nobody needs to knows who you are, how much funds you have, and with whom you transact with.</p>
-    <p>Here you can redeem your Cashu ecash token and get paid into your lightning wallet.</p>
+    <p>Cashu is a free and open-source Chaumian ecash system built for Bitcoin. Cashu offers near-perfect privacy for users of custodial Bitcoin applications. Nobody needs to know who you are, how much funds you have, and with whom you transact with.</p>
+    <p>Here you can redeem a Cashu token into your lightning wallet.</p>
+    <p>Learn more at <a href="https://cashu.space">cashu.space</a></p>
   </div>
 `;
 
@@ -113,21 +114,24 @@ const processToken = async (event?: Event) => {
     .classList.add('hidden');
   setTokenStatus('Checking token, one moment please...');
   try {
-    const tokenBase64 = tokenInput!.innerText;
-    if (!tokenBase64) {
+    const tokenEncoded = tokenInput!.innerText;
+    if (!tokenEncoded) {
       setTokenStatus();
       return;
     }
     document
       .querySelector<HTMLButtonElement>('#tokenRemover')!
       .classList.remove('hidden');
-    const token = JSON.parse(atob(tokenBase64));
+    const token = getDecodedToken(tokenEncoded)
     console.log('token :>> ', token);
-    mintUrl = token.mints[0].url;
+    if (!(token.token.length > 0) || !(token.token[0].proofs.length > 0) || !(token.token[0].mint.length > 0)) {
+      throw 'Token format invalid'
+    }
+    mintUrl = token.token[0].mint;
     const mint = new CashuMint(mintUrl);
     const keys = await mint.getKeys();
     wallet = new CashuWallet(keys, mint);
-    proofs = token.proofs ?? [];
+    proofs = token.token[0].proofs ?? [];
     const spentProofs = await wallet.checkProofsSpent(proofs);
     if (spentProofs.length && spentProofs.length === proofs.length) {
       throw 'Token already spent';
