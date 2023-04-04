@@ -150,6 +150,12 @@ const processToken = async (event?: Event) => {
     setTokenStatus(
       `Receive ${payAmount} sats (incl. ${feeAmount} sats network fees) via Lightning.`
     );
+    
+    let params = new URL(document.location.href).searchParams;
+    let autopay = decodeURIComponent(params.get('autopay') ?? '');
+    if (autopay) {
+      await makePayment();
+    }
   } catch (err) {
     console.error(err);
     let errMsg = `${err}`;
@@ -211,15 +217,11 @@ document.querySelector<HTMLButtonElement>('#redeem')!.onclick = async (
   let params = new URL(document.location.href).searchParams;
   const token = decodeURIComponent(params.get('token') ?? '');
   const to = decodeURIComponent(params.get('ln') || params.get('lightning') || params.get('to') || '');
-  const autopay = decodeURIComponent(params.get('autopay') ?? '');
   if (token) {
     tokenInput!.innerText = token;
-    await processToken();
+    processToken();
   }
   if (to) {
     lnurlInput!.innerText = to;
-  }
-  if (autopay) {
-    await makePayment();
   }
 }
