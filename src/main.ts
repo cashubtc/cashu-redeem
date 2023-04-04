@@ -175,10 +175,8 @@ lnurlInput!.oninput = () => {
       .classList.add('hidden');
 };
 
-document.querySelector<HTMLButtonElement>('#redeem')!.onclick = async (
-  event
-) => {
-  event.preventDefault();
+const makePayment = async (event?: Event) => {
+  if (event) event.preventDefault();
   setTokenStatus('Attempting payment...');
   try {
     let invoice = '';
@@ -200,18 +198,28 @@ document.querySelector<HTMLButtonElement>('#redeem')!.onclick = async (
     }
   } catch (err) {
     console.error(err);
-  }
+  }  
+}
+
+document.querySelector<HTMLButtonElement>('#redeem')!.onclick = async (
+  event
+) => {
+  makePayment(event);
 };
 
 {
   let params = new URL(document.location.href).searchParams;
   const token = decodeURIComponent(params.get('token') ?? '');
   const to = decodeURIComponent(params.get('ln') || params.get('lightning') || params.get('to') || '');
+  const autopay = decodeURIComponent(params.get('autopay') ?? '');
   if (token) {
     tokenInput!.innerText = token;
-    processToken();
+    await processToken();
   }
   if (to) {
     lnurlInput!.innerText = to;
+  }
+  if (autopay) {
+    await makePayment();
   }
 }
