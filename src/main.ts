@@ -1,10 +1,12 @@
 import './style.css';
-import { CashuMint, CashuWallet, getDecodedToken } from '@cashu/cashu-ts';
+import { CashuMint, CashuWallet, getDecodedToken, getEncodedToken } from '@cashu/cashu-ts';
 import { bech32 } from '../lib/bech32/bech32';
 import { decode } from '../lib/bolt11/bolt11';
 // import bolt11 from 'bolt11';
 import type { Proof } from '@cashu/cashu-ts';
 // https://8333.space:3338/check
+import axios from 'axios';
+
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = /*html*/ `
   <div>
@@ -14,17 +16,20 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = /*html*/ `
       <span id="token" role="textbox" aria-roledescription="input" contenteditable></span>
       <button id="tokenRemover" class="text-remover hidden">&times;</button>
     </div>
-    <p id="tokenStatus"></p>
+    <p id="tokenStatus" class="text-wrapper"></p>
+    <p id="lightningStatus" class="text-wrapper"></p>
     <div id="lightningSection" class="hidden">
       <div id="lnurlWrapper" class="text-wrapper">
         <span id="lnurl" role="textbox" aria-roledescription="input" contenteditable></span>
         <button id="lnurlRemover" class="text-remover hidden">&times;</button>
       </div>
-      <button id="redeem" class="button-primary">REDEEM</button>
+      <button id="redeem" class="button-primary">CLICK TO REDEEM TOKEN</button>
     </div>
+    <div id="footerWrapper" class="text-wrapper">
     <p>Cashu is a free and open-source Chaumian ecash system built for Bitcoin. Cashu offers near-perfect privacy for users of custodial Bitcoin applications. Nobody needs to know who you are, how much funds you have, and with whom you transact with.</p>
     <p>Here you can redeem a Cashu token into your lightning wallet.</p>
     <p>Learn more at <a href="https://cashu.space">cashu.space</a></p>
+    </div>
   </div>
 `;
 
@@ -36,6 +41,7 @@ let tokenAmount = 0;
 
 const tokenInput = document.querySelector<HTMLSpanElement>('#token');
 const tokenStatus = document.querySelector<HTMLHeadingElement>('#tokenStatus');
+const lightningStatus = document.querySelector<HTMLHeadingElement>('#lightningStatus');
 const lightningSection =
   document.querySelector<HTMLDivElement>('#lightningSection');
 const lnurlInput = document.querySelector<HTMLSpanElement>('#lnurl');
@@ -43,6 +49,10 @@ const lnurlInput = document.querySelector<HTMLSpanElement>('#lnurl');
 const setTokenStatus = (msg = '') => {
   tokenStatus!.innerText = msg;
 };
+
+const setLightningStatus = (msg = '') => {
+  lightningStatus!.innerText = msg;
+}
 
 const getInvoiceFromLnurl = async (
   address = '',
@@ -109,9 +119,6 @@ const isLnurl = (address: string) =>
 const processToken = async (event?: Event) => {
   if (event) event.preventDefault();
   lightningSection?.classList.add('hidden');
-  document
-    .querySelector<HTMLButtonElement>('#tokenRemover')!
-    .classList.add('hidden');
   setTokenStatus('Checking token, one moment please...');
   try {
     const tokenEncoded = tokenInput!.innerText;
@@ -130,7 +137,7 @@ const processToken = async (event?: Event) => {
     mintUrl = token.token[0].mint;
     const mint = new CashuMint(mintUrl);
     const keys = await mint.getKeys();
-    wallet = new CashuWallet(keys, mint);
+    wallet = new CashuWallet(mint, keys);
     proofs = token.token[0].proofs ?? [];
     const spentProofs = await wallet.checkProofsSpent(proofs);
     if (spentProofs.length && spentProofs.length === proofs.length) {
@@ -145,12 +152,12 @@ const processToken = async (event?: Event) => {
       0
     );
     lightningSection?.classList.remove('hidden');
-    const feeAmount = Math.ceil(Math.max(2, tokenAmount * 0.02));
+    const feeAmount = Math.ceil(Math.max(3, tokenAmount * 0.02));
     payAmount = tokenAmount - feeAmount;
     setTokenStatus(
-      `Receive ${payAmount} sats (incl. ${feeAmount} sats network fees) via Lightning.`
+      `Receive ${payAmount} sats (incl. ${feeAmount} sats network fees) via Lightning\nfrom the mint ${mintUrl}`
     );
-    
+
     let params = new URL(document.location.href).searchParams;
     let autopay = decodeURIComponent(params.get('autopay') ?? '');
     if (autopay) {
@@ -183,28 +190,54 @@ lnurlInput!.oninput = () => {
 
 const makePayment = async (event?: Event) => {
   if (event) event.preventDefault();
-  setTokenStatus('Attempting payment...');
+  setLightningStatus('Attempting payment...');
   try {
     let invoice = '';
     let address = lnurlInput?.innerText ?? '';
+    let iterateFee = null;
     if (isLnurl(address)) {
-      invoice = await getInvoiceFromLnurl(address, payAmount);
+      let iterateAmount = tokenAmount - Math.ceil(Math.max(3, tokenAmount * 0.02));
+      let iterateFee = 0;
+      while (iterateAmount + iterateFee != tokenAmount) {
+        iterateAmount = tokenAmount - iterateFee;
+        invoice = await getInvoiceFromLnurl(address, iterateAmount);
+        iterateFee = await wallet.getFee(invoice);
+        console.log('invoice :>> ', invoice);
+        console.log('iterateAmount :>> ', iterateAmount);
+        console.log('iterateFee :>> ', iterateFee);
+      }
     } else invoice = address;
     if (!wallet || !invoice || !payAmount) throw 'OOPS!';
     const decodedInvoice = await decode(invoice);
-    const fee = await wallet.getFee(invoice);
-    const requestedSats = decodedInvoice.satoshis || 0;
+    let fee = iterateFee ? iterateFee : await wallet.getFee(invoice);
+    let requestedSats = decodedInvoice.satoshis || 0;
     if (requestedSats + fee > tokenAmount)
-      throw 'Not enough to pay the invoice.';
-    const { isPaid } = await wallet.payLnInvoice(invoice, proofs);
+      throw 'Not enough to pay the invoice: needs ' + requestedSats + ' + ' + fee + ' sats';
+    const { isPaid, change } = await wallet.payLnInvoice(invoice, proofs);
     if (isPaid) {
-      setTokenStatus('Payment successful!');
+      setLightningStatus('Payment successful!');
+      if (change && change.length) {
+        const changeToken = getEncodedToken({
+          token: [
+            {
+              mint: mintUrl,
+              proofs: change,
+            },
+          ]
+        })
+        setTokenStatus("Change token: " + changeToken)
+      }
     } else {
-      setTokenStatus('Payment failed');
+      setLightningStatus('Payment failed');
     }
   } catch (err) {
     console.error(err);
-  }  
+    // if it's an AxiosError, show error in response.data.detail
+    if (axios.isAxiosError(err) && err.response?.data?.detail)
+      setLightningStatus('Payment failed: ' + err.response.data.detail);
+    else
+      setLightningStatus('Payment failed: ' + err);
+  }
 }
 
 document.querySelector<HTMLButtonElement>('#redeem')!.onclick = async (

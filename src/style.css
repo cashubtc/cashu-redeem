@@ -3,10 +3,11 @@
     Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.6;
   font-weight: 400;
-  --color-bg: #242424;
+  --color-bg: #131516;
   --color-fg: #f9f9f9;
   --color-a: #7f38ca;
-  color-scheme: light dark;
+  /* neon green: */
+  --color-b: #37e837;
   color: var(--color-fg);
   background-color: var(--color-bg);
 
@@ -16,9 +17,11 @@
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
 }
+
 html {
   font-size: 62.5%;
 }
+
 body {
   font-size: 1.5em;
   margin: 0;
@@ -27,12 +30,14 @@ body {
   min-width: 320px;
   min-height: 100vh;
 }
+
 #app {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
 }
+
 h1 {
   margin-top: 0;
   margin-bottom: 2rem;
@@ -41,22 +46,27 @@ h1 {
   line-height: 1.2;
   letter-spacing: -0.1rem;
 }
+
 @media (min-width: 550px) {
   h1 {
     font-size: 5rem;
   }
 }
+
 p {
   margin-top: 0;
 }
+
 a {
   font-weight: 500;
   color: var(--color-a);
   text-decoration: inherit;
 }
+
 a:hover {
   color: var(--color-a);
 }
+
 .button,
 button,
 input[type='submit'],
@@ -80,6 +90,7 @@ input[type='button'] {
   cursor: pointer;
   box-sizing: border-box;
 }
+
 .button:hover,
 button:hover,
 input[type='submit']:hover,
@@ -94,6 +105,7 @@ input[type='button']:focus {
   border-color: var(--color-a);
   outline: 0;
 }
+
 .button.button-primary,
 button.button-primary,
 input[type='submit'].button-primary,
@@ -101,8 +113,9 @@ input[type='reset'].button-primary,
 input[type='button'].button-primary {
   color: var(--color-fg);
   background-color: var(--color-a);
-  border-color: var(--color-fg);
+  border-color: var(--color-bg);
 }
+
 .button.button-primary:hover,
 button.button-primary:hover,
 input[type='submit'].button-primary:hover,
@@ -113,20 +126,23 @@ button.button-primary:focus,
 input[type='submit'].button-primary:focus,
 input[type='reset'].button-primary:focus,
 input[type='button'].button-primary:focus {
-  color: var(--color-bg);
+  color: var(--color-fg);
   background-color: var(--color-a);
-  border-color: var(--color-bg);
+  border-color: var(--color-fg);
 }
+
 button,
 .button {
   margin-bottom: 1rem;
 }
+
 input,
 textarea,
 select,
 fieldset {
   margin-bottom: 1.5rem;
 }
+
 pre,
 blockquote,
 dl,
@@ -138,13 +154,16 @@ ol,
 form {
   margin-bottom: 2.5rem;
 }
+
 .u-full-width {
   width: 100%;
   box-sizing: border-box;
 }
+
 .hidden {
   display: none;
 }
+
 #token,
 #lnurl {
   display: block;
@@ -159,20 +178,24 @@ form {
   padding: 1.5em;
   border-radius: 1em;
 }
+
 #token[contenteditable]:empty::before {
   content: 'Paste in your Cashu ecash token...';
   color: gray;
 }
+
 #lnurl[contenteditable]:empty::before {
   content: 'Paste Lightning invoice or LNURL or Lightning address';
   color: gray;
 }
+
 .text-wrapper {
   position: relative;
   width: 100%;
   max-width: 80vw;
   margin: 20px auto;
 }
+
 .text-remover {
   position: absolute;
   top: 0;
@@ -182,10 +205,12 @@ form {
   font-size: 20px;
   color: var(--color-a);
 }
+
 .text-remover:hover {
   color: var(--color-bg);
   background-color: var(--color-fg);
 }
+
 #tokenStatus {
   font-size: 2.4rem;
   line-height: 1.35;
@@ -193,6 +218,27 @@ form {
   font-weight: 700;
   color: var(--color-a);
 }
+
+#lightningStatus {
+  font-size: 2.4rem;
+  line-height: 1.35;
+  letter-spacing: -0.08rem;
+  font-weight: 700;
+  color: var(--color-b);
+}
+
+#footerWrapper {
+  margin-top: 7rem;
+  margin-bottom: 2rem;
+  font-size: medium;
+}
+
+#redeem {
+  margin-top: 1rem;
+  font-size: 1.2rem;
+
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     --color-bg: #f9f9f9;
