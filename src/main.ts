@@ -137,7 +137,7 @@ const processToken = async (event?: Event) => {
     mintUrl = token.token[0].mint;
     const mint = new CashuMint(mintUrl);
     const keys = await mint.getKeys();
-    wallet = new CashuWallet(mint, keys);
+    wallet = new CashuWallet(keys, mint);
     proofs = token.token[0].proofs ?? [];
     const spentProofs = await wallet.checkProofsSpent(proofs);
     if (spentProofs.length && spentProofs.length === proofs.length) {
@@ -213,20 +213,9 @@ const makePayment = async (event?: Event) => {
     let requestedSats = decodedInvoice.satoshis || 0;
     if (requestedSats + fee > tokenAmount)
       throw 'Not enough to pay the invoice: needs ' + requestedSats + ' + ' + fee + ' sats';
-    const { isPaid, change } = await wallet.payLnInvoice(invoice, proofs);
+    const { isPaid } = await wallet.payLnInvoice(invoice, proofs);
     if (isPaid) {
       setLightningStatus('Payment successful!');
-      if (change && change.length) {
-        const changeToken = getEncodedToken({
-          token: [
-            {
-              mint: mintUrl,
-              proofs: change,
-            },
-          ]
-        })
-        setTokenStatus("Change token: " + changeToken)
-      }
     } else {
       setLightningStatus('Payment failed');
     }
